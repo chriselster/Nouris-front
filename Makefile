@@ -1,7 +1,8 @@
 .PHONY: install sync-types
 
 install:
-	@if [ -d apps/tutor_app ]; then \
+	@set -e; \
+	if [ -d apps/tutor_app ]; then \
 		(cd apps/tutor_app && flutter pub get); \
 	else \
 		echo "Skipping apps/tutor_app (directory not found)"; \
