@@ -2,12 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../data/repositories/pet_repository.dart';
 import '../../features/auth/bloc/auth_bloc.dart';
 import '../../features/auth/pages/link_qr_page.dart';
 import '../../features/auth/pages/login_page.dart';
 import '../../features/home/pages/home_shell_page.dart';
+import '../../features/home/pages/home_tab_page.dart';
 import '../../features/onboarding/pages/onboarding_pet_page.dart';
+import '../../features/pets/cubit/pets_cubit.dart';
+import '../../features/pets/pages/pets_tab_page.dart';
 import '../../features/splash/pages/splash_page.dart';
+import '../di/injection.dart';
 
 abstract final class AppRouter {
   static final _rootNavigatorKey = GlobalKey<NavigatorState>();
@@ -31,8 +36,14 @@ abstract final class AppRouter {
       ShellRoute(
         builder: (context, state, child) => HomeShellPage(child: child),
         routes: [
-          GoRoute(path: '/home', builder: (_, s) => const _HomeTab()),
-          GoRoute(path: '/pets', builder: (_, s) => const _PetsTab()),
+          GoRoute(path: '/home', builder: (_, s) => const HomeTabPage()),
+          GoRoute(
+            path: '/pets',
+            builder: (_, s) => BlocProvider(
+              create: (_) => PetsCubit(sl<PetRepository>()),
+              child: const PetsTabPage(),
+            ),
+          ),
           GoRoute(path: '/profile', builder: (_, s) => const _ProfileTab()),
         ],
       ),
@@ -66,20 +77,6 @@ abstract final class AppRouter {
 }
 
 // Placeholders internos — substituídos quando as features forem implementadas.
-
-class _HomeTab extends StatelessWidget {
-  const _HomeTab();
-  @override
-  Widget build(BuildContext context) =>
-      const Center(child: Text('Home — Em construção'));
-}
-
-class _PetsTab extends StatelessWidget {
-  const _PetsTab();
-  @override
-  Widget build(BuildContext context) =>
-      const Center(child: Text('Pets — Em construção'));
-}
 
 class _ProfileTab extends StatelessWidget {
   const _ProfileTab();

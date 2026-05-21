@@ -29,7 +29,7 @@ final class AuthRepository {
   /// em vez de abrir um fluxo OAuth (que exigiria deep link nativo).
   static bool get _useDevLogin => _isDesktop && kDebugMode;
 
-  static const _devEmail = 'dev@teste.com';
+  static const _devEmail = 'tutor@teste.com';
   static const _devPassword = '1234';
 
   /// Login com Google via OAuth do Supabase (sem SDK nativo do Google).

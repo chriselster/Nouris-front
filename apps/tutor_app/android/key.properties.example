@@ -1,0 +1,6 @@
+# Copie para android/key.properties (local) ou injete via CI.
+# Nunca versionar o arquivo key.properties real.
+storeFile=../upload-keystore.jks
+storePassword=CHANGE_ME
+keyAlias=upload
+keyPassword=CHANGE_ME

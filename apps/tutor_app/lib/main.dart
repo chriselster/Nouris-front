@@ -30,8 +30,14 @@ Future<void> main() async {
 
   // ── Supabase ──────────────────────────────────────────────────────
   await Supabase.initialize(
-    url: const String.fromEnvironment('SUPABASE_URL'),
-    anonKey: const String.fromEnvironment('SUPABASE_ANON_KEY'),
+    url: const String.fromEnvironment(
+      'SUPABASE_URL',
+      defaultValue: 'https://jjbyuvvcksvvhglocfrw.supabase.co',
+    ),
+    anonKey: const String.fromEnvironment(
+      'SUPABASE_ANON_KEY',
+      defaultValue: 'sb_publishable_TjqZEG7NAXntkYfvQFctrg_vGm7us_e',
+    ),
   );
 
   // ── Dependency Injection ──────────────────────────────────────────

@@ -1,0 +1,106 @@
+workflows:
+  android_ci:
+    name: Tutor App Android CI
+    max_build_duration: 60
+    instance_type: linux_x2
+    environment:
+      flutter: stable
+      groups:
+        - android_release
+      vars:
+        APP_DIR: apps/tutor_app
+    triggering:
+      events:
+        - push
+      branch_patterns:
+        - pattern: main
+          include: true
+          source: true
+    scripts:
+      - name: Flutter pub get
+        script: |
+          cd "$APP_DIR"
+          flutter pub get
+      - name: Analyze
+        script: |
+          cd "$APP_DIR"
+          flutter analyze --no-fatal-infos
+      - name: Unit tests
+        script: |
+          cd "$APP_DIR"
+          flutter test
+      - name: Build Android AAB (unsigned/debug fallback)
+        script: |
+          cd "$APP_DIR"
+          flutter build appbundle --release \
+            --build-name=0.1.${PROJECT_BUILD_NUMBER} \
+            --build-number=${PROJECT_BUILD_NUMBER} \
+            --dart-define=SUPABASE_URL=$SUPABASE_URL \
+            --dart-define=SUPABASE_ANON_KEY=$SUPABASE_ANON_KEY
+    artifacts:
+      - apps/tutor_app/build/**/outputs/**/*.aab
+      - apps/tutor_app/build/**/outputs/**/mapping.txt
+
+  android_release_internal:
+    name: Tutor App Android Release Internal
+    max_build_duration: 60
+    instance_type: linux_x2
+    environment:
+      flutter: stable
+      groups:
+        - android_release
+      vars:
+        APP_DIR: apps/tutor_app
+    triggering:
+      events:
+        - tag
+      tag_patterns:
+        - pattern: v*
+          include: true
+    scripts:
+      - name: Decode keystore and create key.properties
+        script: |
+          cd "$APP_DIR/android"
+          echo "$CM_KEYSTORE" | base64 --decode > upload-keystore.jks || echo "$CM_KEYSTORE" | base64 -d > upload-keystore.jks
+          cat > key.properties <<EOF
+          storePassword=$CM_KEYSTORE_PASSWORD
+          keyPassword=$CM_KEY_PASSWORD
+          keyAlias=$CM_KEY_ALIAS
+          storeFile=../upload-keystore.jks
+          EOF
+      - name: Flutter pub get
+        script: |
+          cd "$APP_DIR"
+          flutter pub get
+      - name: Analyze and test
+        script: |
+          cd "$APP_DIR"
+          flutter analyze --no-fatal-infos
+          flutter test
+      - name: Resolve version from tag
+        script: |
+          TAG_NO_V=${CM_TAG#v}
+          BUILD_NAME=$(echo "$TAG_NO_V" | cut -d+ -f1)
+          BUILD_NUMBER=$(echo "$TAG_NO_V" | sed -n 's/.*+\([0-9][0-9]*\)$/\1/p')
+          if [ -z "$BUILD_NUMBER" ]; then
+            BUILD_NUMBER=${PROJECT_BUILD_NUMBER}
+          fi
+          echo "BUILD_NAME=$BUILD_NAME" >> $CM_ENV
+          echo "BUILD_NUMBER=$BUILD_NUMBER" >> $CM_ENV
+      - name: Build signed AAB
+        script: |
+          cd "$APP_DIR"
+          flutter build appbundle --release \
+            --build-name=$BUILD_NAME \
+            --build-number=$BUILD_NUMBER \
+            --dart-define=SUPABASE_URL=$SUPABASE_URL \
+            --dart-define=SUPABASE_ANON_KEY=$SUPABASE_ANON_KEY
+    artifacts:
+      - apps/tutor_app/build/**/outputs/**/*.aab
+      - apps/tutor_app/build/**/outputs/**/mapping.txt
+    publishing:
+      google_play:
+        credentials: $GCLOUD_SERVICE_ACCOUNT_CREDENTIALS
+        track: internal
+        submit_as_draft: false
+        changes_not_sent_for_review: true
