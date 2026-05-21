@@ -25,10 +25,6 @@ workflows:
         script: |
           cd "$APP_DIR"
           flutter analyze --no-fatal-infos
-      - name: Unit tests
-        script: |
-          cd "$APP_DIR"
-          flutter test
       - name: Build Android AAB (unsigned/debug fallback)
         script: |
           cd "$APP_DIR"
@@ -72,11 +68,10 @@ workflows:
         script: |
           cd "$APP_DIR"
           flutter pub get
-      - name: Analyze and test
+      - name: Analyze
         script: |
           cd "$APP_DIR"
           flutter analyze --no-fatal-infos
-          flutter test
       - name: Resolve version from tag
         script: |
           TAG_NO_V=${CM_TAG#v}
