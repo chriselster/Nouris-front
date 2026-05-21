@@ -1,5 +1,5 @@
 name: tutor_app
-description: "A new Flutter project."
+description: "Nouris — App para Tutores de Pets (Flutter + BLoC + Supabase)"
 publish_to: 'none'
 version: 0.1.0+1
 
@@ -10,10 +10,51 @@ dependencies:
   flutter:
     sdk: flutter
 
+  # ── State Management ─────────────────────────────────────────────
+  flutter_bloc: ^9.1.1       # BLoC widgets (BlocProvider, BlocBuilder…)
+  bloc: ^9.0.0               # Core BLoC/Cubit
+  hydrated_bloc: ^10.0.0     # Persistência local de estado via HydratedStorage
+  equatable: ^2.0.7          # Value equality para Events/States
+
+  # ── Backend ───────────────────────────────────────────────────────
+  supabase_flutter: ^2.9.1   # Supabase client (Auth, DB, Storage)
+
+  # ── Navigation ────────────────────────────────────────────────────
+  go_router: ^15.1.2         # Roteamento declarativo com redirect
+
+  # ── Dependency Injection ──────────────────────────────────────────
+  get_it: ^8.0.3             # Service locator manual
+
+  # ── Connectivity & Sync ───────────────────────────────────────────
+  connectivity_plus: ^6.1.4  # Monitor de rede para SyncBloc
+
+  # ── Camera / QR / Image ───────────────────────────────────────────
+  mobile_scanner: ^7.0.1     # Scanner de QR Code (tutor vincula ao vet)
+  image_picker: ^1.1.2       # Captura de fotos de fezes
+  flutter_image_compress: ^2.4.0  # Compressão client-side para WebP <500kb
+
+  # ── Notifications ─────────────────────────────────────────────────
+  flutter_local_notifications: ^18.0.1  # Lembrete local de compliance da dieta
+
+  # ── Deep Links (OAuth callback) ───────────────────────────────────
+  app_links: ^6.4.0          # Captura deep links do Supabase OAuth
+
+  # ── UI / Theme ────────────────────────────────────────────────────
+  google_fonts: ^6.2.1       # Poppins typography
+  device_preview: ^1.2.0     # Preview em múltiplos dispositivos (desabilitado em release)
+
+  # ── Utilities ─────────────────────────────────────────────────────
+  uuid: ^4.5.1               # Gerar IDs locais para PendingAction
+  path_provider: ^2.1.5      # Diretório para HydratedBloc storage
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
+
+  # ── Testing ───────────────────────────────────────────────────────
+  bloc_test: ^10.0.0         # Utilitários de teste para BLoC
+  mocktail: ^1.0.4           # Mocking sem code-gen
 
 flutter:
   uses-material-design: true
