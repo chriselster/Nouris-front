@@ -110,6 +110,12 @@ final class QrLinkCubit extends Cubit<QrLinkState> {
       final userId = _client.auth.currentUser?.id;
       if (userId == null) throw Exception('Usuário não autenticado.');
 
+      // Garante que tutor_profiles existe antes de vincular o pet,
+      // pois pets.tutor_user_id tem FK para tutor_profiles.user_id.
+      await _client
+          .from('tutor_profiles')
+          .upsert({'user_id': userId}, onConflict: 'user_id');
+
       await _client
           .from('pets')
           .update({'tutor_user_id': userId})

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:bloc/bloc.dart';
 
 import '../../../core/errors/app_error.dart';
@@ -19,9 +21,21 @@ final class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<AuthSignInWithGoogle>(_onSignInWithGoogle);
     on<AuthSignInWithApple>(_onSignInWithApple);
     on<AuthSignOut>(_onSignOut);
+
+    // Escuta retorno do OAuth (deep link) e confirma sessão automaticamente.
+    _authSub = _authRepository.onSignedIn.listen(
+      (_) => add(const AuthCheckSession()),
+    );
   }
 
   final AuthRepository _authRepository;
+  late final StreamSubscription<dynamic> _authSub;
+
+  @override
+  Future<void> close() {
+    _authSub.cancel();
+    return super.close();
+  }
 
   Future<void> _onCheckSession(
     AuthCheckSession event,
@@ -30,6 +44,8 @@ final class AuthBloc extends Bloc<AuthEvent, AuthState> {
     emit(const AuthLoading());
     final user = _authRepository.currentUser;
     if (user != null) {
+      // Cria/atualiza tutor_profiles na primeira vez (ou após OAuth).
+      await _authRepository.ensureTutorProfile();
       emit(AuthAuthenticated(user));
     } else {
       emit(const AuthUnauthenticated());

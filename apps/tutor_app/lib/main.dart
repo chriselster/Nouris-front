@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:device_preview/device_preview.dart';
 import 'package:flutter/foundation.dart';
@@ -45,7 +47,7 @@ Future<void> main() async {
 
   runApp(
     DevicePreview(
-      enabled: !kReleaseMode,
+      enabled: !kReleaseMode && !(Platform.isAndroid || Platform.isIOS),
       builder: (context) => const NourisApp(),
     ),
   );

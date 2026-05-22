@@ -143,7 +143,9 @@ class _LinkQrPageState extends State<LinkQrPage>
             ],
           ),
           body: Stack(
+            fit: StackFit.expand,
             children: [
+              Container(color: Colors.black),
               // 1. Câmera (full screen)
               Positioned.fill(
                 child: MobileScanner(controller: _scanner, onDetect: _onDetect),
@@ -176,7 +178,7 @@ class _LinkQrPageState extends State<LinkQrPage>
                 },
               ),
 
-              // 5. Texto + botão de simulação
+              // // 5. Texto + botão de simulação
               Positioned(
                 left: 24,
                 right: 24,

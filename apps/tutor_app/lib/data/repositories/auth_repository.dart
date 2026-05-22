@@ -8,22 +8,18 @@ final class AuthRepository {
   const AuthRepository(this._client);
   final SupabaseClient _client;
 
-  /// Deep link registrado no app para mobile (iOS/Android).
-  static const _mobileRedirectUrl = String.fromEnvironment(
-    'SUPABASE_REDIRECT_URL',
-  );
-
   /// true para Windows, Linux e macOS (plataformas desktop).
   static bool get _isDesktop =>
       defaultTargetPlatform == TargetPlatform.windows ||
       defaultTargetPlatform == TargetPlatform.linux ||
       defaultTargetPlatform == TargetPlatform.macOS;
-  static String? get _redirectTo {
-    if (kIsWeb || _isDesktop || _mobileRedirectUrl.isEmpty) return null;
-    return _mobileRedirectUrl;
-  }
 
   User? get currentUser => _client.auth.currentUser;
+
+  /// Emite [User] sempre que o Supabase confirma uma sessão (ex: retorno OAuth).
+  Stream<User> get onSignedIn => _client.auth.onAuthStateChange
+      .where((d) => d.event == AuthChangeEvent.signedIn && d.session != null)
+      .map((d) => d.session!.user);
 
   /// Em desktop + debug, faz login com usuário de desenvolvimento via e-mail/senha
   /// em vez de abrir um fluxo OAuth (que exigiria deep link nativo).
@@ -47,10 +43,8 @@ final class AuthRepository {
     try {
       await _client.auth.signInWithOAuth(
         provider,
-        redirectTo: _redirectTo,
-        authScreenLaunchMode: kIsWeb
-            ? LaunchMode.platformDefault
-            : LaunchMode.externalApplication,
+        redirectTo: 'com.nouris.tutor://login-callback',
+        authScreenLaunchMode: LaunchMode.platformDefault,
       );
     } on AuthException catch (e) {
       throw AuthError(e.message);
@@ -71,6 +65,32 @@ final class AuthRepository {
     } catch (_) {
       throw const NetworkError();
     }
+  }
+
+  /// Garante que existe um registro em tutor_profiles para o usuário logado.
+  /// Operação idempotente — segura de chamar a cada sessão confirmada.
+  /// Usa ignoreDuplicates para não sobrescrever perfil já existente.
+  Future<void> ensureTutorProfile() async {
+    final user = _client.auth.currentUser;
+    if (user == null) return;
+
+    // Tenta extrair nome do provider OAuth (Google/Apple enviam em userMetadata).
+    final displayName =
+        (user.userMetadata?['full_name'] as String?)?.trim() ??
+        (user.userMetadata?['name'] as String?)?.trim();
+
+    await _client
+        .from('tutor_profiles')
+        .upsert(
+          {
+            'user_id': user.id,
+            if (displayName != null && displayName.isNotEmpty)
+              'display_name': displayName,
+          },
+          onConflict: 'user_id',
+          ignoreDuplicates:
+              true, // Não sobrescreve perfil já editado pelo usuário
+        );
   }
 
   Future<void> signOut() async {
